@@ -1,0 +1,257 @@
+<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">
+<title>G1 · Correlación percepción vs victimización</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#0D1117;color:#E6EDF3;
+     display:flex;flex-direction:column;height:100vh;overflow:hidden}
+#top{padding:8px 14px;border-bottom:1px solid #21262D;display:flex;align-items:center;
+     gap:8px;flex-wrap:wrap;flex-shrink:0;background:#0D1117}
+#top h1{font-size:13px;font-weight:600;color:#F0F6FF}
+#top p{font-size:10px;color:#8B949E}
+.tb{font-size:11px;padding:3px 10px;border-radius:20px;border:1px solid #30363D;
+    background:#161B22;color:#8B949E;cursor:pointer;transition:all .15s}
+.tb:hover{border-color:#58A6FF;color:#58A6FF}
+.tb.active{background:#1F3A5F;border-color:#1F6FEB;color:#79C0FF;font-weight:500}
+#main{display:flex;flex:1;min-height:0}
+#cw{flex:1;position:relative;min-width:0}
+canvas{display:block;width:100%;height:100%;cursor:crosshair}
+canvas.hover{cursor:pointer}
+#tt{position:absolute;background:#161B22;border:1px solid #30363D;border-radius:6px;
+    padding:5px 10px;font-size:11px;pointer-events:none;display:none;z-index:9;white-space:nowrap}
+#panel{width:285px;flex-shrink:0;border-left:1px solid #21262D;background:#161B22;
+       display:flex;flex-direction:column;overflow-y:auto}
+.ph{padding:9px 13px;border-bottom:1px solid #21262D;font-size:10px;font-weight:600;
+    color:#8B949E;text-transform:uppercase;letter-spacing:.06em;flex-shrink:0}
+.pb{padding:12px;flex:1;overflow-y:auto}
+.empty{color:#484F58;font-size:12px;line-height:1.8}
+.ntitle{font-size:14px;font-weight:600;color:#F0F6FF;line-height:1.3}
+.nsub{font-size:11px;color:#8B949E;margin-top:2px}
+.sec{margin-top:12px}
+.st{font-size:10px;font-weight:600;color:#8B949E;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px}
+.sr{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid #0D1117;font-size:11px}
+.sr:last-child{border:none}
+.sl{color:#8B949E}.sv{font-weight:500;color:#E6EDF3}
+.bar{height:4px;background:#21262D;border-radius:2px;overflow:hidden;margin-top:2px}
+.bf{height:100%;border-radius:2px;transition:width .4s}
+.badge{font-size:10px;font-weight:500;padding:2px 8px;border-radius:99px;display:inline-block;margin:2px 2px 0 0}
+.br{background:#3D1B1B;color:#F48A8A}.ba{background:#2D1F0A;color:#F0A854}
+.bg{background:#0D2611;color:#56D364}.bp{background:#1E1B3A;color:#A78BFA}
+.bt{background:#0A1F2D;color:#79C0FF}
+.leg{padding:10px 13px;border-top:1px solid #21262D;flex-shrink:0}
+.lt{font-size:10px;font-weight:600;color:#8B949E;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px}
+.lr{display:flex;align-items:center;gap:5px;font-size:10px;color:#8B949E;margin-top:3px}
+.ld{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.ll{width:18px;height:2px;border-radius:1px;flex-shrink:0}
+</style>
+</head><body>
+<div id="top">
+  <div><h1>Red de correlación — percepción vs victimización real</h1>
+  <p>Aristas = correlación de Pearson entre variables (|r|≥0.30) · datos reales por localidad</p></div>
+  <button class="tb active" onclick="mode='graph';draw();document.querySelectorAll('.tb').forEach(b=>b.classList.remove('active'));this.classList.add('active')">Red de correlación</button>
+  <button class="tb" onclick="mode='scatter';draw();document.querySelectorAll('.tb').forEach(b=>b.classList.remove('active'));this.classList.add('active')">Scatter por localidad</button>
+  <div id="scatter-controls" style="display:none;gap:6px;align-items:center">
+    <span style="font-size:11px;color:#8B949E">X:</span>
+    <select id="sx" onchange="draw()" style="font-size:11px;padding:2px 5px;border-radius:5px;border:1px solid #30363D;background:#161B22;color:#E6EDF3">
+      <option value="inseg">Victimización real</option>
+      <option value="score_g">Percepción género</option>
+      <option value="nse">NSE</option>
+      <option value="empeoró">Empeora %</option>
+    </select>
+    <span style="font-size:11px;color:#8B949E">Y:</span>
+    <select id="sy" onchange="draw()" style="font-size:11px;padding:2px 5px;border-radius:5px;border:1px solid #30363D;background:#161B22;color:#E6EDF3">
+      <option value="score_g">Percepción género</option>
+      <option value="inseg">Victimización real</option>
+      <option value="brecha">Brecha M−H</option>
+      <option value="empeoró">Empeora %</option>
+    </select>
+  </div>
+</div>
+<div id="main">
+<div id="cw"><canvas id="gc"></canvas><div id="tt"></div></div>
+<div id="panel">
+  <div class="ph" id="ph">Selecciona un nodo</div>
+  <div class="pb">
+    <div class="empty" id="emp">
+      <strong style="color:#E6EDF3">Red de correlación</strong><br><br>
+      Cada nodo es una <em>variable</em> del estudio.<br>
+      Cada arista es la <em>correlación de Pearson</em> calculada con los datos reales de las 20 localidades.<br><br>
+      <span style="color:#56D364">─── Positiva</span> · <span style="color:#F48A8A">─── Negativa</span><br>
+      Grosor = magnitud de r<br><br>
+      Cambia a <em>Scatter</em> para ver la relación entre dos variables específicas.
+    </div>
+    <div id="det" style="display:none">
+      <div class="ntitle" id="d-name"></div>
+      <div class="nsub" id="d-desc" style="margin-top:6px;line-height:1.6"></div>
+      <div class="sec"><div class="st">Correlaciones con otras variables</div>
+        <div id="d-corrs"></div></div>
+    </div>
+  </div>
+  <div class="leg">
+    <div class="lt">Correlación de Pearson</div>
+    <div class="lr"><div class="ll" style="background:#56D364;height:3px"></div>Positiva fuerte (r&gt;0.6)</div>
+    <div class="lr"><div class="ll" style="background:#56D364;opacity:.5;height:1px"></div>Positiva débil</div>
+    <div class="lr"><div class="ll" style="background:#F48A8A;height:3px"></div>Negativa fuerte</div>
+    <div class="lr"><div class="ll" style="background:#F48A8A;opacity:.5;height:1px"></div>Negativa débil</div>
+    <div style="margin-top:6px;font-size:10px;color:#484F58">Calculado con n=20 localidades</div>
+  </div>
+</div>
+</div>
+<script>
+const VARS=[{"id": 0, "name": "Victimización\nreal", "key": "inseg", "color": "#E24B4A", "group": "impacto", "x": 0.5, "y": 0.15}, {"id": 1, "name": "Percepción\ngénero", "key": "score_g", "color": "#E24B4A", "group": "impacto", "x": 0.5, "y": 0.35}, {"id": 2, "name": "Brecha\nM−H", "key": "brecha", "color": "#A78BFA", "group": "inequidad", "x": 0.72, "y": 0.5}, {"id": 3, "name": "NSE\n(estrato)", "key": "nse", "color": "#1F6FEB", "group": "estrutural", "x": 0.28, "y": 0.5}, {"id": 4, "name": "Inseguridad\nempeora", "key": "empeoró", "color": "#E24B4A", "group": "impacto", "x": 0.5, "y": 0.55}, {"id": 5, "name": "Paraderos\ninseguros", "key": "par", "color": "#EF9F27", "group": "espacio", "x": 0.72, "y": 0.28}, {"id": 6, "name": "Puentes\ninseguros", "key": "puen", "color": "#EF9F27", "group": "espacio", "x": 0.85, "y": 0.5}, {"id": 7, "name": "Miedo a\nrepresalias", "key": "repr", "color": "#7C3AED", "group": "barrera", "x": 0.28, "y": 0.28}, {"id": 8, "name": "Vergüenza\n/ culpa", "key": "verg", "color": "#7C3AED", "group": "barrera", "x": 0.15, "y": 0.5}];
+const VEDGES=[{"a": 0, "b": 4, "r": 0.997, "p": 0.0, "w": 0.997, "sign": "pos"}, {"a": 0, "b": 5, "r": 0.845, "p": 0.0, "w": 0.845, "sign": "pos"}, {"a": 0, "b": 6, "r": 0.819, "p": 0.0, "w": 0.819, "sign": "pos"}, {"a": 1, "b": 2, "r": 0.354, "p": 0.126, "w": 0.354, "sign": "pos"}, {"a": 1, "b": 7, "r": 0.491, "p": 0.0278, "w": 0.491, "sign": "pos"}, {"a": 1, "b": 8, "r": -0.349, "p": 0.1317, "w": 0.349, "sign": "neg"}, {"a": 3, "b": 8, "r": 0.359, "p": 0.1203, "w": 0.359, "sign": "pos"}, {"a": 4, "b": 5, "r": 0.862, "p": 0.0, "w": 0.862, "sign": "pos"}, {"a": 4, "b": 6, "r": 0.832, "p": 0.0, "w": 0.832, "sign": "pos"}, {"a": 5, "b": 6, "r": 0.878, "p": 0.0, "w": 0.878, "sign": "pos"}, {"a": 5, "b": 8, "r": -0.322, "p": 0.1662, "w": 0.322, "sign": "neg"}, {"a": 6, "b": 8, "r": -0.508, "p": 0.0221, "w": 0.508, "sign": "neg"}];
+const SCATTER=[{"loc": "Usaquen", "inseg": 0, "score_g": 17.72, "brecha": 10.6, "nse": 3.93, "empeoró": 0, "n": 847}, {"loc": "Chapinero", "inseg": 50.97, "score_g": 21.36, "brecha": 10.8, "nse": 4.06, "empeoró": 59.6, "n": 1642}, {"loc": "Santa Fe", "inseg": 51.7, "score_g": 27.23, "brecha": 16.5, "nse": 2.54, "empeoró": 63.9, "n": 1466}, {"loc": "San Cristobal", "inseg": 0, "score_g": 27.6, "brecha": 14.6, "nse": 2.21, "empeoró": 0, "n": 753}, {"loc": "Usme", "inseg": 51.55, "score_g": 26.45, "brecha": 17.2, "nse": 1.81, "empeoró": 63.5, "n": 1792}, {"loc": "Tunjuelito", "inseg": 52.36, "score_g": 27.26, "brecha": 11.1, "nse": 2.27, "empeoró": 65.8, "n": 1643}, {"loc": "Bosa", "inseg": 53.43, "score_g": 31.36, "brecha": 11.9, "nse": 1.91, "empeoró": 66.7, "n": 2138}, {"loc": "Kennedy", "inseg": 54.09, "score_g": 13.72, "brecha": 13.7, "nse": 2.73, "empeoró": 68.2, "n": 2354}, {"loc": "Fontibon", "inseg": 0, "score_g": 31.99, "brecha": 16.2, "nse": 2.86, "empeoró": 0, "n": 783}, {"loc": "Engativa", "inseg": 0, "score_g": 30.13, "brecha": 20.9, "nse": 3.32, "empeoró": 0, "n": 956}, {"loc": "Suba", "inseg": 54.1, "score_g": 21.1, "brecha": 17.1, "nse": 3.01, "empeoró": 68.7, "n": 2368}, {"loc": "Barrios Unidos", "inseg": 54.44, "score_g": 24.67, "brecha": 7.0, "nse": 3.24, "empeoró": 67.1, "n": 1631}, {"loc": "Teusaquillo", "inseg": 53.61, "score_g": 37.72, "brecha": 23.6, "nse": 3.19, "empeoró": 66.9, "n": 1606}, {"loc": "Los Martires", "inseg": 0, "score_g": 31.24, "brecha": 14.2, "nse": 2.94, "empeoró": 0, "n": 521}, {"loc": "Antonio Nariño", "inseg": 55.05, "score_g": 29.1, "brecha": 8.4, "nse": 2.8, "empeoró": 70.1, "n": 1406}, {"loc": "Puente Aranda", "inseg": 55.37, "score_g": 27.54, "brecha": 9.8, "nse": 2.91, "empeoró": 70.2, "n": 1618}, {"loc": "La Candelaria", "inseg": 48.71, "score_g": 39.59, "brecha": 24.6, "nse": 2.51, "empeoró": 54.3, "n": 1233}, {"loc": "Rafael Uribe Uribe", "inseg": 53.6, "score_g": 18.76, "brecha": 13.2, "nse": 2.39, "empeoró": 66.2, "n": 1819}, {"loc": "Ciudad Bolivar", "inseg": 0, "score_g": 27.83, "brecha": 8.9, "nse": 1.32, "empeoró": 0, "n": 837}, {"loc": "Sumapaz", "inseg": 57.57, "score_g": 9.5, "brecha": 17.6, "nse": 1.64, "empeoró": 65.2, "n": 169}];
+const canvas=document.getElementById('gc');
+const ctx=canvas.getContext('2d');
+const tt=document.getElementById('tt');
+let W,H,selected=null,hovered=null,mode='graph';
+
+function nodePos(n){return {x:n.x*W,y:n.y*H};}
+const NR=30;
+
+function getNodeAt(mx,my){
+  for(const n of VARS){const p=nodePos(n);if((mx-p.x)**2+(my-p.y)**2<(NR+6)**2)return n.id;}
+  return null;
+}
+
+function rColor(r){
+  if(r>0){const t=Math.min(r/0.9,1);return `rgba(${Math.round(86-t*57)},${Math.round(211-t*82)},${Math.round(100-t*77)},${0.4+t*0.5})`;}
+  const t=Math.min(-r/0.9,1);return `rgba(${Math.round(244)},${Math.round(138-t*138)},${Math.round(138-t*138)},${0.4+t*0.5})`;
+}
+
+function drawGraph(){
+  ctx.clearRect(0,0,W,H);
+  const ns=selected!==null?new Set(VEDGES.filter(e=>e.a===selected||e.b===selected).flatMap(e=>[e.a,e.b])):null;
+
+  VEDGES.forEach(e=>{
+    const na=VARS[e.a],nb=VARS[e.b];
+    const pa=nodePos(na),pb=nodePos(nb);
+    const conn=ns&&(e.a===selected||e.b===selected);
+    const alpha=ns?(conn?1:0.07):0.8;
+    ctx.beginPath();ctx.moveTo(pa.x,pa.y);ctx.lineTo(pb.x,pb.y);
+    ctx.strokeStyle=rColor(e.r).replace(/[\d.]+\)$/,`${alpha})`);
+    ctx.lineWidth=0.5+Math.abs(e.r)*5;ctx.stroke();
+    if(conn){
+      ctx.fillStyle=rColor(e.r);ctx.font='bold 10px sans-serif';ctx.textAlign='center';
+      ctx.fillText('r='+e.r,(pa.x+pb.x)/2,(pa.y+pb.y)/2-4);
+    }
+  });
+
+  VARS.forEach(n=>{
+    const p=nodePos(n);
+    const isSel=n.id===selected,isN=ns&&ns.has(n.id)&&!isSel;
+    const dim=selected!==null&&!isSel&&!isN;
+    const al=dim?0.15:0.92;
+    const rgb=n.color.replace('#','').match(/.{2}/g).map(h=>parseInt(h,16));
+    if(!dim){ctx.beginPath();ctx.arc(p.x,p.y,NR+5,0,Math.PI*2);ctx.fillStyle=`rgba(0,0,0,${isSel?0.6:0.3})`;ctx.fill();}
+    ctx.beginPath();ctx.arc(p.x,p.y,NR,0,Math.PI*2);
+    ctx.fillStyle=`rgba(${rgb[0]},${rgb[1]},${rgb[2]},${al})`;ctx.fill();
+    if(isSel){ctx.beginPath();ctx.arc(p.x,p.y,NR+6,0,Math.PI*2);ctx.strokeStyle=n.color;ctx.lineWidth=2.5;ctx.stroke();}
+    const lines=n.name.split('\n');
+    ctx.font=`500 10px 'Segoe UI',sans-serif`;ctx.fillStyle=`rgba(255,255,255,${dim?0.15:0.9})`;ctx.textAlign='center';
+    lines.forEach((l,i)=>ctx.fillText(l,p.x,p.y+(i-(lines.length-1)/2)*13));
+    ctx.font='9px sans-serif';ctx.fillStyle=`rgba(255,255,255,${dim?0.1:0.6})`;
+    ctx.fillText(n.val.toFixed(1)+'%',p.x,p.y+NR+12);
+  });
+}
+
+function drawScatter(){
+  ctx.clearRect(0,0,W,H);
+  const xk=document.getElementById('sx').value;
+  const yk=document.getElementById('sy').value;
+  const pad=60;const pw=W-pad*2,ph=H-pad*2;
+  const xv=SCATTER.map(d=>d[xk]||0),yv=SCATTER.map(d=>d[yk]||0);
+  const xmin=Math.min(...xv),xmax=Math.max(...xv);
+  const ymin=Math.min(...yv),ymax=Math.max(...yv);
+  const xr=xmax-xmin||1,yr=ymax-ymin||1;
+  // Ejes
+  ctx.strokeStyle='rgba(100,110,120,0.4)';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(pad,pad);ctx.lineTo(pad,H-pad);ctx.lineTo(W-pad,H-pad);ctx.stroke();
+  // Línea de regresión
+  const n=SCATTER.length,sx=xv.reduce((a,b)=>a+b,0),sy=yv.reduce((a,b)=>a+b,0);
+  const sxy=xv.reduce((a,b,i)=>a+b*yv[i],0),sx2=xv.reduce((a,b)=>a+b*b,0);
+  const m=(n*sxy-sx*sy)/(n*sx2-sx*sx)||0,c=(sy-m*sx)/n;
+  const x1=xmin,y1=m*x1+c,x2=xmax,y2=m*x2+c;
+  const px1=pad+(x1-xmin)/xr*pw,py1=H-pad-(y1-ymin)/yr*ph;
+  const px2=pad+(x2-xmin)/xr*pw,py2=H-pad-(y2-ymin)/yr*ph;
+  ctx.beginPath();ctx.moveTo(px1,py1);ctx.lineTo(px2,py2);
+  ctx.strokeStyle='rgba(226,75,74,0.5)';ctx.lineWidth=1.5;ctx.setLineDash([5,4]);ctx.stroke();
+  ctx.setLineDash([]);
+  // Puntos
+  SCATTER.forEach(d=>{
+    const px=pad+(( d[xk]||0)-xmin)/xr*pw;
+    const py=H-pad-((d[yk]||0)-ymin)/yr*ph;
+    const inseg=d.inseg||0;
+    const col=inseg>55?'#E24B4A':inseg>35?'#EF9F27':'#1D9E75';
+    ctx.beginPath();ctx.arc(px,py,6,0,Math.PI*2);
+    ctx.fillStyle=col+'CC';ctx.fill();
+    ctx.font='9px sans-serif';ctx.fillStyle='rgba(230,237,243,0.7)';ctx.textAlign='left';
+    ctx.fillText(d.loc.split(' ')[0],px+8,py+3);
+  });
+  // Etiquetas
+  ctx.font='11px sans-serif';ctx.fillStyle='rgba(139,148,158,0.9)';ctx.textAlign='center';
+  ctx.fillText(xk,W/2,H-12);
+  ctx.save();ctx.translate(14,H/2);ctx.rotate(-Math.PI/2);ctx.fillText(yk,0,0);ctx.restore();
+  // r
+  const r=(n*sxy-sx*sy)/Math.sqrt((n*sx2-sx*sx)*(n*yv.reduce((a,b)=>a+b*b,0)-sy*sy))||0;
+  ctx.font='bold 11px sans-serif';ctx.fillStyle='rgba(226,75,74,0.9)';ctx.textAlign='right';
+  ctx.fillText('r = '+r.toFixed(3),W-16,20);
+}
+
+function draw(){
+  document.getElementById('scatter-controls').style.display=mode==='scatter'?'flex':'none';
+  if(mode==='scatter'){drawScatter();return;}
+  drawGraph();
+}
+
+function showDetail(id){
+  document.getElementById('emp').style.display=id===null?'':'none';
+  document.getElementById('det').style.display=id===null?'none':'';
+  if(id===null){document.getElementById('ph').textContent='Selecciona un nodo';return;}
+  const n=VARS[id];
+  document.getElementById('ph').textContent=n.name.replace('\n',' ');
+  document.getElementById('d-name').textContent=n.name.replace('\n',' ');
+  document.getElementById('d-desc').textContent=n.desc||'';
+  const myEdges=VEDGES.filter(e=>e.a===id||e.b===id).sort((a,b)=>Math.abs(b.r)-Math.abs(a.r));
+  document.getElementById('d-corrs').innerHTML=myEdges.map(e=>{
+    const other=VARS[e.a===id?e.b:e.a];
+    const col=e.r>0?'#56D364':'#F48A8A';
+    const sig=e.p<0.05?'✓':'~';
+    return `<div style="padding:4px 0;border-bottom:1px solid #0D1117;font-size:11px">
+      <div style="display:flex;justify-content:space-between">
+        <span style="color:#8B949E">${other.name.replace('\n',' ')}</span>
+        <span style="color:${col};font-weight:600">r=${e.r} ${sig}</span>
+      </div>
+      <div style="height:3px;background:#21262D;border-radius:2px;margin-top:3px;overflow:hidden">
+        <div style="height:100%;width:${Math.abs(e.r)*100}%;background:${col};border-radius:2px"></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+canvas.addEventListener('mousemove',e=>{
+  if(mode!=='graph')return;
+  const r=canvas.getBoundingClientRect();
+  const mx=(e.clientX-r.left)*W/r.width,my=(e.clientY-r.top)*H/r.height;
+  const id=getNodeAt(mx,my);
+  if(id!==hovered){hovered=id;canvas.className=id!==null?'hover':'';draw();}
+  if(id!==null){const n=VARS[id];tt.style.display='block';tt.style.left=(e.clientX-r.left+12)+'px';tt.style.top=(e.clientY-r.top-28)+'px';tt.textContent=n.name.replace('\n',' ')+' · '+n.val.toFixed(1)+'%';}
+  else tt.style.display='none';
+});
+canvas.addEventListener('click',e=>{
+  if(mode!=='graph')return;
+  const r=canvas.getBoundingClientRect();
+  const id=getNodeAt((e.clientX-r.left)*W/r.width,(e.clientY-r.top)*H/r.height);
+  selected=id===selected?null:id;showDetail(selected);draw();
+});
+
+function resize(){
+  const dpr=window.devicePixelRatio||1;
+  const rect=canvas.getBoundingClientRect();
+  W=rect.width;H=rect.height;
+  canvas.width=W*dpr;canvas.height=H*dpr;
+  ctx.scale(dpr,dpr);draw();
+}
+window.addEventListener('resize',resize);
+setTimeout(resize,80);
+
+</script></body></html>
