@@ -33,7 +33,7 @@
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 25px;
-            max-width: 1200px;
+            max-width: 1400px;
             width: 100%;
         }
         .card {
@@ -79,13 +79,15 @@
             color: #484F58;
             font-size: 12px;
             text-align: center;
+            max-width: 800px;
+            line-height: 1.6;
         }
     </style>
 </head>
 <body>
     <h1>🔍 Inseguridad en Bogotá y Cundinamarca</h1>
     <div class="sub">
-        Visualizaciones interactivas
+        Visualizaciones interactivas basadas en múltiples encuestas (2024-2025)
     </div>
 
     <div class="grid">
@@ -106,10 +108,22 @@
             <p>Grafo relacional de localidades. Compara indicadores de temor, irrespeto y agresión. Visualiza conexiones por vecindad, similitud o rutas principales.</p>
             <span class="badge">Grafo · Conexiones</span>
         </a>
+
+        <a href="grafo_intermunicipal_sabana.html" class="card">
+            <h2>🏙️ Red intermunicipal</h2>
+            <p>Conexiones de inseguridad entre Bogotá y municipios de la Sabana. Análisis de flujos de percepción y victimización en la región metropolitana.</p>
+            <span class="badge">Sabana · Regional</span>
+        </a>
+
+        <a href="grafo_correlacion_variables.html" class="card">
+            <h2>📈 Correlación de variables</h2>
+            <p>Relaciones entre diferentes variables de inseguridad: temor, irrespeto, agresión, espacios públicos y brecha de género. Identifica patrones y factores asociados.</p>
+            <span class="badge">Estadístico · Correlaciones</span>
+        </a>
     </div>
 
     <div class="footer">
-        Datos: Encuesta de Percepción y Victimización 2025, Encuesta de Género 2025, Encuesta de Movilidad y Entornos Urbanos 2024
+        <strong>Fuentes:</strong> Encuesta de Percepción y Victimización 2025 · Encuesta de Género 2025 · Encuesta de Movilidad y Entornos Urbanos 2024 · Cámara de Comercio de Bogotá
     </div>
 </body>
 </html>
