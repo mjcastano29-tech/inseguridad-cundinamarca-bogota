@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inseguridad en Bogotá · Visualizaciones</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0D1117;
+            color: #E6EDF3;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h1 {
+            color: #F0F6FF;
+            font-size: 28px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        .sub {
+            color: #8B949E;
+            font-size: 16px;
+            margin-bottom: 40px;
+            text-align: center;
+            max-width: 600px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            max-width: 1200px;
+            width: 100%;
+        }
+        .card {
+            background: #161B22;
+            border: 1px solid #30363D;
+            border-radius: 12px;
+            padding: 25px 20px;
+            transition: transform 0.2s, border-color 0.2s;
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            flex-direction: column;
+        }
+        .card:hover {
+            border-color: #58A6FF;
+            transform: translateY(-4px);
+        }
+        .card h2 {
+            color: #F0F6FF;
+            font-size: 22px;
+            margin: 0 0 10px 0;
+        }
+        .card p {
+            color: #8B949E;
+            font-size: 14px;
+            line-height: 1.6;
+            margin: 0 0 15px 0;
+            flex: 1;
+        }
+        .badge {
+            display: inline-block;
+            background: #1F3A5F;
+            color: #79C0FF;
+            font-size: 12px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            margin-top: 10px;
+            border: 1px solid #1F6FEB;
+            align-self: flex-start;
+        }
+        .footer {
+            margin-top: 50px;
+            color: #484F58;
+            font-size: 12px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 Inseguridad en Bogotá y Cundinamarca</h1>
+    <div class="sub">
+        Visualizaciones interactivas basadas en la Encuesta de Percepción y Victimización 2025 · Cámara de Comercio
+    </div>
+
+    <div class="grid">
+        <a href="grafo_mapa_bogota_interactivo.html" class="card">
+            <h2>🗺️ Mapa interactivo</h2>
+            <p>Localidades de Bogotá sobre mapa real. Explora indicadores de victimización, brecha de género y percepción de espacios públicos. Haz clic en cualquier zona para ver detalles.</p>
+            <span class="badge">Mapa · Geoespacial</span>
+        </a>
+
+        <a href="grafo_UPL_barrios_interactivo.html" class="card">
+            <h2>📊 UPL + Barrios</h2>
+            <p>Unidades de Planeamiento Local (UPL) con datos de inseguridad por género, satisfacción con transporte y barrios con mayor victimización. Vista detallada por subzonas.</p>
+            <span class="badge">UPL · Barrios</span>
+        </a>
+
+        <a href="grafo_interactivo_inseguridad.html" class="card">
+            <h2>🕸️ Red de inseguridad</h2>
+            <p>Grafo relacional de localidades. Compara indicadores de temor, irrespeto y agresión. Visualiza conexiones por vecindad, similitud o rutas principales.</p>
+            <span class="badge">Grafo · Conexiones</span>
+        </a>
+    </div>
+
+    <div class="footer">
+        Datos: Encuesta de Percepción y Victimización 2025 · Cámara de Comercio de Bogotá
+    </div>
+</body>
+</html>
